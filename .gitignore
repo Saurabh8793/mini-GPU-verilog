@@ -1,0 +1,9 @@
+# Compiled simulation binaries
+RTL/vvp_gtk/
+
+# VCD waveform files
+*.vcd
+
+# Compiled test outputs
+*_test
+sim_*
