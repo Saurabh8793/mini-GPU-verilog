@@ -157,11 +157,11 @@
 
         // ── Logic unit ───────────────────────────────────────────
         // op: 00=AND  01=OR  10=XOR  11=NOT
-        wire [1:0] logic_op = (opcode == AND) ? 2'b00 :
-                            (opcode == OR)  ? 2'b01 :
-                            (opcode == XOR) ? 2'b10 :
-                            (opcode == NOT) ? 2'b11 :
-                                                2'b00;
+        wire [2:0] logic_op = (opcode == AND) ? 3'b000 :
+                            (opcode == OR)  ? 3'b001 :
+                            (opcode == XOR) ? 3'b010 :
+                            (opcode == NOT) ? 3'b011 :
+                                             3'b000;
 
         wire [7:0] logic_result;
 

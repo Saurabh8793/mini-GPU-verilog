@@ -3,7 +3,7 @@
 module logic_unit(
     input  wire [7:0] a,
     input  wire [7:0] b,
-    input  wire [1:0] op,
+    input  wire [2:0] op,
     output reg  [7:0] result
 );
     // op=00 → AND
@@ -53,12 +53,36 @@ module logic_unit(
     not_gate n6(.a(a[6]),.y(not_result[6]));
     not_gate n7(.a(a[7]),.y(not_result[7]));
 
+        // NAND: 8 bits
+    wire [7:0] nand_result;
+    nand_gate na0(.a(a[0]),.b(b[0]),.y(nand_result[0]));
+    nand_gate na1(.a(a[1]),.b(b[1]),.y(nand_result[1]));
+    nand_gate na2(.a(a[2]),.b(b[2]),.y(nand_result[2]));
+    nand_gate na3(.a(a[3]),.b(b[3]),.y(nand_result[3]));
+    nand_gate na4(.a(a[4]),.b(b[4]),.y(nand_result[4]));
+    nand_gate na5(.a(a[5]),.b(b[5]),.y(nand_result[5]));
+    nand_gate na6(.a(a[6]),.b(b[6]),.y(nand_result[6]));
+    nand_gate na7(.a(a[7]),.b(b[7]),.y(nand_result[7]));
+
+    // NOR: 8 bits
+    wire [7:0] nor_result;
+    nor_gate nr0(.a(a[0]),.b(b[0]),.y(nor_result[0]));
+    nor_gate nr1(.a(a[1]),.b(b[1]),.y(nor_result[1]));
+    nor_gate nr2(.a(a[2]),.b(b[2]),.y(nor_result[2]));
+    nor_gate nr3(.a(a[3]),.b(b[3]),.y(nor_result[3]));
+    nor_gate nr4(.a(a[4]),.b(b[4]),.y(nor_result[4]));
+    nor_gate nr5(.a(a[5]),.b(b[5]),.y(nor_result[5]));
+    nor_gate nr6(.a(a[6]),.b(b[6]),.y(nor_result[6]));
+    nor_gate nr7(.a(a[7]),.b(b[7]),.y(nor_result[7]));
+
     always @(*) begin
         case (op)
-            2'b00: result = and_result;
-            2'b01: result = or_result;
-            2'b10: result = xor_result;
-            2'b11: result = not_result;
+            3'b000: result = and_result;
+            3'b001: result = or_result;
+            3'b010: result = xor_result;
+            3'b011: result = not_result;
+            3'b100: result = nand_result;
+            3'b101: result = nor_result;
             default: result = 8'b0;
         endcase
     end
