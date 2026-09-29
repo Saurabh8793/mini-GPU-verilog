@@ -30,9 +30,13 @@
 //    Documented 8-bit architecture limitation
 //
 // 4. DIV future work:
-//    When DIV writeback implemented, need to:
-//    - latch dest address at div_start
-//    - enable write when div_done pulses high
+//    Current behaviour: DIV executes but result NOT written to register
+//    Quotient available via div_done pulse and div_remainder output
+//    To implement writeback:
+//    - latch dest address when div_start asserted
+//    - assert write_enable when div_done pulses high
+//    - write quotient to latched dest register
+//    This requires sequential logic in shader_core.v
 
 module instruction_decoder(
     input  wire [15:0] instruction,
