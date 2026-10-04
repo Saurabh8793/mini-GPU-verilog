@@ -7,3 +7,8 @@ RTL/vvp_gtk/
 # Compiled test outputs
 *_test
 sim_*
+# Build outputs / binaries
+RTL/*_demo
+output/
+Gtk_waveform/*.png
+*.hex
