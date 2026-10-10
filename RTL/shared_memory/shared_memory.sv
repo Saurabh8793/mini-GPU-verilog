@@ -9,7 +9,9 @@
 //   - Priority encoder selects winning core (lowest ID)
 //   - 6-to-64 decoder enables exactly one register_8bit
 //   - Documented limitation: one write per cycle
-//     (mirrors NVIDIA shared memory bank conflict behavior)
+//     One write per cycle.
+//     Multiple simultaneous write requests are detected as a conflict.
+//     Lowest-numbered requesting core wins.
 //
 // Read: 8 simultaneous read ports
 //   - Each core has a dedicated 64-to-1 mux

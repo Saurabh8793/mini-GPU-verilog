@@ -221,7 +221,8 @@ module shared_memory_tb;
                    "all cores read core0 data");
 
         // ════════════════════════════════════════════════════
-        // TEST 7: True parallel reads different addresses
+        // TEST 7: Parallel reads from different addresses
+        // Eight read ports access eight different addresses simultaneously
         // ════════════════════════════════════════════════════
         $display("\n--- TEST 7: Parallel reads different addr ---");
         for (i=0; i<8; i=i+1)

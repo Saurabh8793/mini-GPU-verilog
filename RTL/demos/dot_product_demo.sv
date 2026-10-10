@@ -88,6 +88,8 @@ module dot_product_demo;
 
     integer file_handle;
     integer i;
+    reg [7:0]  vec_a [0:7];
+    reg [7:0]  vec_b [0:7];
 
     // ── Load values into specific cores ──────────────────────
     task load_core;
@@ -186,25 +188,67 @@ module dot_product_demo;
         $display("  Mini GPU — Dot Product Demo");
         $display("  Full GPU Reduction on Hardware");
         $display("============================================");
-        $display("A = [1,2,3,4,5,6,7,8]");
-        $display("B = [8,7,6,5,4,3,2,1]");
-        $display("Expected = 120");
+        // ── Read input vectors from file ──────────────────────
+        // input.txt format (two lines, space separated):
+        //   Line 1: 8 values for A
+        //   Line 2: 8 values for B
+        // Values clamped to 0-15 (max product 15x15=225 < 255)
+        // If file missing, default vectors are used
+        begin : read_input
+            integer fh;
+            integer scan_ok;
+            integer k;
+            fh = $fopen("input.txt", "r");
+            if (fh == 0) begin
+                $display("input.txt not found — using defaults");
+                vec_a[0]=8'd1; vec_a[1]=8'd2;
+                vec_a[2]=8'd3; vec_a[3]=8'd4;
+                vec_a[4]=8'd5; vec_a[5]=8'd6;
+                vec_a[6]=8'd7; vec_a[7]=8'd8;
+                vec_b[0]=8'd8; vec_b[1]=8'd7;
+                vec_b[2]=8'd6; vec_b[3]=8'd5;
+                vec_b[4]=8'd4; vec_b[5]=8'd3;
+                vec_b[6]=8'd2; vec_b[7]=8'd1;
+            end else begin
+                scan_ok = $fscanf(fh,
+                    "%d %d %d %d %d %d %d %d",
+                    vec_a[0],vec_a[1],vec_a[2],vec_a[3],
+                    vec_a[4],vec_a[5],vec_a[6],vec_a[7]);
+                scan_ok = $fscanf(fh,
+                    "%d %d %d %d %d %d %d %d",
+                    vec_b[0],vec_b[1],vec_b[2],vec_b[3],
+                    vec_b[4],vec_b[5],vec_b[6],vec_b[7]);
+                $fclose(fh);
+                $display("Vectors loaded from input.txt");
+                for (k=0; k<8; k=k+1) begin
+                    if (vec_a[k] > 15) vec_a[k] = 15;
+                    if (vec_b[k] > 15) vec_b[k] = 15;
+                end
+            end
+        end
+
+        $display("A = [%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d]",
+                  vec_a[0],vec_a[1],vec_a[2],vec_a[3],
+                  vec_a[4],vec_a[5],vec_a[6],vec_a[7]);
+        $display("B = [%0d,%0d,%0d,%0d,%0d,%0d,%0d,%0d]",
+                  vec_b[0],vec_b[1],vec_b[2],vec_b[3],
+                  vec_b[4],vec_b[5],vec_b[6],vec_b[7]);
         $display("--------------------------------------------");
 
         // ════════════════════════════════════════════════════
         // PHASE 1: MUL — 8 cores compute simultaneously
-        // Each core i: R2 = A[i] * B[i]
         // ════════════════════════════════════════════════════
         $display("\nPHASE 1: Parallel multiply (all 8 cores)");
 
         // Load vector A into R0
-        load_all(4'd0, 8'd1, 8'd2, 8'd3, 8'd4,
-                         8'd5, 8'd6, 8'd7, 8'd8);
+        load_all(4'd0,
+            vec_a[0], vec_a[1], vec_a[2], vec_a[3],
+            vec_a[4], vec_a[5], vec_a[6], vec_a[7]);
 
         // Load vector B into R1
-        load_all(4'd1, 8'd8, 8'd7, 8'd6, 8'd5,
-                         8'd4, 8'd3, 8'd2, 8'd1);
-
+        load_all(4'd1,
+            vec_b[0], vec_b[1], vec_b[2], vec_b[3],
+            vec_b[4], vec_b[5], vec_b[6], vec_b[7]);
         t_start = $time;
 
         // MUL R2, R0, R1
@@ -221,14 +265,30 @@ module dot_product_demo;
         partial[4] = result_bus[4]; partial[5] = result_bus[5];
         partial[6] = result_bus[6]; partial[7] = result_bus[7];
 
-        $display("  Core 0: %0d x %0d = %0d", 1, 8, partial[0]);
-        $display("  Core 1: %0d x %0d = %0d", 2, 7, partial[1]);
-        $display("  Core 2: %0d x %0d = %0d", 3, 6, partial[2]);
-        $display("  Core 3: %0d x %0d = %0d", 4, 5, partial[3]);
-        $display("  Core 4: %0d x %0d = %0d", 5, 4, partial[4]);
-        $display("  Core 5: %0d x %0d = %0d", 6, 3, partial[5]);
-        $display("  Core 6: %0d x %0d = %0d", 7, 2, partial[6]);
-        $display("  Core 7: %0d x %0d = %0d", 8, 1, partial[7]);
+        for (i=0; i<8; i=i+1)
+            $display("  Core %0d: %0d x %0d = %0d",
+                      i, vec_a[i], vec_b[i], partial[i]);
+        for (i=0; i<8; i=i+1)
+            $display("  Core %0d: %0d x %0d = %0d",
+                      i, vec_a[i], vec_b[i], partial[i]);
+        for (i=0; i<8; i=i+1)
+            $display("  Core %0d: %0d x %0d = %0d",
+                      i, vec_a[i], vec_b[i], partial[i]);
+        for (i=0; i<8; i=i+1)
+            $display("  Core %0d: %0d x %0d = %0d",
+                      i, vec_a[i], vec_b[i], partial[i]);
+        for (i=0; i<8; i=i+1)
+            $display("  Core %0d: %0d x %0d = %0d",
+                      i, vec_a[i], vec_b[i], partial[i]);
+        for (i=0; i<8; i=i+1)
+            $display("  Core %0d: %0d x %0d = %0d",
+                      i, vec_a[i], vec_b[i], partial[i]);
+        for (i=0; i<8; i=i+1)
+            $display("  Core %0d: %0d x %0d = %0d",
+                      i, vec_a[i], vec_b[i], partial[i]);
+        for (i=0; i<8; i=i+1)
+            $display("  Core %0d: %0d x %0d = %0d",
+                      i, vec_a[i], vec_b[i], partial[i]);
         $display("  Phase 1 done in %0d cycles", mul_cycles);
 
         // ════════════════════════════════════════════════════
@@ -342,10 +402,21 @@ module dot_product_demo;
         $display("============================================");
         $display("Dot product = %0d", final_result);
 
-        if (final_result === 8'd120)
-            $display("Status: CORRECT");
-        else
-            $display("Status: WRONG (expected 120)");
+            begin : verify
+                integer expected_sum;
+                integer k;
+                expected_sum = 0;
+                for (k=0; k<8; k=k+1)
+                    expected_sum = expected_sum +
+                                (vec_a[k] * vec_b[k]);
+
+                $display("Expected sum = %0d", expected_sum);
+                if (final_result == expected_sum[7:0])
+                    $display("Status: CORRECT");
+                else
+                    $display("Status: WRONG (got %0d exp %0d)",
+                            final_result, expected_sum);
+            end
 
         $display("\nTiming (measured):");
         $display("  MUL phase:    %0d cycles", mul_cycles);
@@ -363,41 +434,25 @@ module dot_product_demo;
             $fwrite(file_handle,
                     "# Mini GPU Dot Product Demo\n");
             $fwrite(file_handle,
-                    "# Vector A: 1 2 3 4 5 6 7 8\n");
+                    "# Vector A: %0d %0d %0d %0d %0d %0d %0d %0d\n",
+                    vec_a[0],vec_a[1],vec_a[2],vec_a[3],
+                    vec_a[4],vec_a[5],vec_a[6],vec_a[7]);
             $fwrite(file_handle,
-                    "# Vector B: 8 7 6 5 4 3 2 1\n");
-            $fwrite(file_handle,
-                    "# Format: core_id,a,b,product\n");
-
-            // Partial products
-            $fwrite(file_handle, "0,1,8,%0d\n",  partial[0]);
-            $fwrite(file_handle, "1,2,7,%0d\n",  partial[1]);
-            $fwrite(file_handle, "2,3,6,%0d\n",  partial[2]);
-            $fwrite(file_handle, "3,4,5,%0d\n",  partial[3]);
-            $fwrite(file_handle, "4,5,4,%0d\n",  partial[4]);
-            $fwrite(file_handle, "5,6,3,%0d\n",  partial[5]);
-            $fwrite(file_handle, "6,7,2,%0d\n",  partial[6]);
-            $fwrite(file_handle, "7,8,1,%0d\n",  partial[7]);
-
-            // Reduction rounds
-            $fwrite(file_handle,
-                    "round1,%0d,%0d,%0d,%0d\n",
-                    round1[0], round1[1],
-                    round1[2], round1[3]);
-            $fwrite(file_handle,
-                    "round2,%0d,%0d\n",
-                    round2[0], round2[1]);
-            $fwrite(file_handle,
-                    "final,%0d\n", final_result);
-
-            // Timing
-            $fwrite(file_handle,
-                    "mul_cycles,%0d\n",    mul_cycles);
-            $fwrite(file_handle,
-                    "reduce_cycles,%0d\n", reduce_cycles);
-            $fwrite(file_handle,
-                    "total_cycles,%0d\n",  total_cycles);
-            $fwrite(file_handle, "expected,120\n");
+                    "# Vector B: %0d %0d %0d %0d %0d %0d %0d %0d\n",
+                    vec_b[0],vec_b[1],vec_b[2],vec_b[3],
+                    vec_b[4],vec_b[5],vec_b[6],vec_b[7]);
+            // Partial products with actual vector values
+            for (i=0; i<8; i=i+1)
+                $fwrite(file_handle, "%0d,%0d,%0d,%0d\n",
+                        i, vec_a[i], vec_b[i], partial[i]);
+            begin : write_expected
+                integer exp_sum;
+                integer kk;
+                exp_sum = 0;
+                for (kk=0; kk<8; kk=kk+1)
+                    exp_sum = exp_sum + vec_a[kk]*vec_b[kk];
+                $fwrite(file_handle, "expected,%0d\n", exp_sum);
+            end
 
             $fclose(file_handle);
             $display("\nOutput written to dot_product.hex");

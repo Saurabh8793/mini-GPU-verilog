@@ -236,8 +236,11 @@ def create_visualization(data):
         ('Vectors',        'A·B (8 elements)'),
         ('Dot product',    str(final)),
         ('Expected',       str(correct)),
+        ('Expected',       str(sum(a*b for a,b in
+                                   zip(vec_a, vec_b)))),
         ('Status',         '✓ CORRECT'
-                           if final==correct
+                           if final == sum(a*b for a,b in
+                               zip(vec_a, vec_b))
                            else '✗ WRONG'),
         ('MUL cycles',     str(mul_cyc)),
         ('Reduce cycles',  str(red_cyc)),
@@ -299,6 +302,10 @@ def main():
     print(f"Round 2:   {data.get('round2')}")
     print(f"Final:     {data.get('final')}")
     print(f"Cycles:    {data.get('total_cycles')}")
+    expected = sum(a*b for a,b in zip(
+        data['vec_a'], data['vec_b']))
+    print(f"Expected:  {expected}")
+    print(f"Correct:   {data.get('final') == expected}")
     create_visualization(data)
 
 

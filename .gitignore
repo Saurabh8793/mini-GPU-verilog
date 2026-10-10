@@ -10,5 +10,10 @@ sim_*
 # Build outputs / binaries
 RTL/*_demo
 output/
-Gtk_waveform/*.png
+
 *.hex
+
+# Python cache — never commit these
+__pycache__/
+*.py[cod]
+*.pyo
